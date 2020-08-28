@@ -24,7 +24,7 @@ class Note:
         self.octave = msg.note // 12 - 1 # Divide by 12 to get the octave. Translate down by 1 too.
         self.start = start # Time (in sixteenth notes) since the beginning of the track that this note starts on
         self.duration = duration # Duration of the note in sixteenth notes
-        self.velocity = 12 if disable_vel else round(msg.velocity * (15/100)) # Note velocity, linearly scaled from 0-100 to 0-15
+        self.velocity = 12 if disable_vel else round(msg.velocity * (16/128)) # Note velocity, linearly scaled from 0-127 to 0-15
 
     def _get_length_str(self, duration):
         assert duration >= 1, f"Error: Note duration was less than a sixteenth note. ({duration})"
@@ -79,11 +79,16 @@ class Note:
 
 class Rest(Note):
     def __init__(self, start, duration):
-        self.velocity = 12 # High velocity silence!
         self.pitch = 'R' # It means Rest. Pretty easy to figure out tbh
-        self.octave = 0 # Completely meaningless
         self.start = start # See Note.start
         self.duration = duration # See Note.duration
+
+    def encode(self):
+        return self.pitch + self._get_length_str(self.duration)
+
+    @property
+    def end(self):
+        return self.start + self.duration
 
 
 class Track:
